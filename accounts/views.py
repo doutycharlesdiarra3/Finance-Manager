@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm
+from .models import UserProfile
 
 
 def register_view(request):
@@ -14,6 +15,10 @@ def register_view(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            
+            # Créer automatiquement un profil pour le nouvel utilisateur
+            UserProfile.objects.create(user=user)
+
             login(request, user)
             messages.success(request, 'Votre compte a été créé avec succès!')
             return redirect('core:dashboard')
