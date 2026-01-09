@@ -29,15 +29,4 @@ class UserProfile(models.Model):
         return f"Profil de {self.user.username}"
 
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """Crée automatiquement un profil lors de la création d'un utilisateur"""
-    if created:
-        UserProfile.objects.create(user=instance)
 
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Sauvegarde le profil lors de la sauvegarde de l'utilisateur"""
-    if hasattr(instance, 'profile'):
-        instance.profile.save()
