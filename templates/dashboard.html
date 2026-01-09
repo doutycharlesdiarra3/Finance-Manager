@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tableau de bord - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold mb-3 text-light">
+                <i class="bi bi-speedometer2"></i> Tableau de bord
+            </h1>
+            <p class="text-light">Vue d'ensemble de vos finances</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card card-income">
+                <div class="stat-icon">
+                    <i class="bi bi-arrow-down-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Revenus du mois</h6>
+                    <h2>{{ income_month|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-expense">
+                <div class="stat-icon">
+                    <i class="bi bi-arrow-up-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Dépenses du mois</h6>
+                    <h2>{{ expense_month|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-balance">
+                <div class="stat-icon">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Solde du mois</h6>
+                    <h2 class="{% if balance < 0 %}text-danger{% endif %}">{{ balance|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-total">
+                <div class="stat-icon">
+                    <i class="bi bi-piggy-bank"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Solde total</h6>
+                    <h2 class="{% if total_balance < 0 %}text-danger{% endif %}">{{ total_balance|floatformat:2 }} €
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Alerts -->
+    {% if budget_alerts %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <h5><i class="bi bi-exclamation-triangle"></i> Alertes budgétaires</h5>
+                <ul class="mb-0">
+                    {% for budget in budget_alerts %}
+                    <li>
+                        <strong>{{ budget.category.name }}</strong>:
+                        {{ budget.get_percentage_used|floatformat:0 }}% utilisé
+                        ({{ budget.get_spent_amount|floatformat:2 }}€ / {{ budget.amount|floatformat:2 }}€)
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Évolution mensuelle</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Dépenses par catégorie</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Dernières transactions</h5>
+                    <a href="{% url 'core:transaction_create' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Nouvelle transaction
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Catégorie</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>{{ transaction.date|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if transaction.type == 'INCOME' %}
+                                        <span class="badge bg-success">Revenu</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Dépense</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.category %}
+                                        {{ transaction.category.icon }} {{ transaction.category.name }}
+                                        {% else %}
+                                        <em>Sans catégorie</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ transaction.description|truncatewords:10 }}</td>
+                                    <td
+                                        class="text-end fw-bold {% if transaction.type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if transaction.type == 'INCOME' %}+{% else %}-{% endif %}{{ transaction.amount|floatformat:2 }} €
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'core:transaction_list' %}" class="btn btn-outline-primary">
+                            Voir toutes les transactions <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-3">Aucune transaction enregistrée</p>
+                        <a href="{% url 'core:transaction_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Ajouter votre première transaction
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ months_data|json_script:"months-data" }}
+{{ category_data|json_script:"category-data" }}
+
+<script>
+    // Monthly Evolution Chart
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    // const monthlyData = {{ months_data| safe }};
+    const monthlyData = JSON.parse(
+        document.getElementById("months-data").textContent
+    );
+
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthlyData.map(d => d.label),
+            datasets: [{
+                label: 'Revenus',
+                data: monthlyData.map(d => d.income),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Dépenses',
+                data: monthlyData.map(d => d.expense),
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function (value) {
+                            return value + ' €';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Category Pie Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    // const categoryData = {{ category_data| safe }};
+    const categoryData = JSON.parse(
+        document.getElementById("category-data").textContent
+    );
+
+    if (categoryData.length > 0) {
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryData.map(d => d.name),
+                datasets: [{
+                    data: categoryData.map(d => d.amount),
+                    backgroundColor: categoryData.map(d => d.color),
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    } else {
+        categoryCtx.canvas.parentElement.innerHTML = '<p class="text-center text-muted py-5">Aucune dépense ce mois-ci</p>';
+    }
+</script>
+{% endblock %}

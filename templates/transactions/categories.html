@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Catégories - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="display-6 fw-bold">
+                <i class="bi bi-tags"></i> Mes Catégories
+            </h1>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'core:category_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nouvelle catégorie
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-arrow-down-circle"></i> Catégories de revenus</h5>
+                </div>
+                <div class="card-body">
+                    {% with income_cats=categories|dictsort:"type"|slice:":50" %}
+                    <div class="list-group">
+                        {% for cat in income_cats %}
+                        {% if cat.type == 'INCOME' %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                <span style="font-size: 1.5rem;">{{ cat.icon }}</span>
+                                <strong>{{ cat.name }}</strong>
+                            </span>
+                            <span class="badge" style="background-color: {{ cat.color }};">{{ cat.color }}</span>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-arrow-up-circle"></i> Catégories de dépenses</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for cat in categories %}
+                        {% if cat.type == 'EXPENSE' %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                <span style="font-size: 1.5rem;">{{ cat.icon }}</span>
+                                <strong>{{ cat.name }}</strong>
+                            </span>
+                            <span class="badge" style="background-color: {{ cat.color }};">{{ cat.color }}</span>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

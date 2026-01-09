@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Transactions - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="display-6 fw-bold text-light">
+                <i class="bi bi-list-ul"></i> Mes Transactions
+            </h1>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'core:transaction_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nouvelle transaction
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="">Tous</option>
+
+                        <option value="INCOME" {% if is_income %}selected{% endif %}>
+                            Revenus
+                        </option>
+
+                        <option value="EXPENSE" {% if is_expense %}selected{% endif %}>
+                            Dépenses
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Catégorie</label>
+                    <select name="category" class="form-select">
+                        <option value="">Toutes</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {{ cat.selected }}>
+                            {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Mois</label>
+                    <input type="month" name="month" class="form-control" value="{{ month_filter }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Catégorie</th>
+                            <th>Description</th>
+                            <th class="text-end">Montant</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.date|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if transaction.type == "INCOME" %}
+                                <span class="badge bg-success">Revenu</span>
+                                {% else %}
+                                <span class="badge bg-danger">Dépense</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.category %}
+                                <span style="color: {{ transaction.category.color }}">
+                                    {{ transaction.category.icon }} {{ transaction.category.name }}
+                                </span>
+                                {% else %}
+                                <em class="text-muted">Sans catégorie</em>
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.description|truncatewords:15 }}</td>
+                            <td
+                                class="text-end fw-bold {% if transaction.type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                {% if transaction.type == "INCOME" %}+{% else %}-{% endif %}{{ transaction.amount|floatformat:2 }} €
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'core:transaction_update' transaction.pk %}"
+                                    class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'core:transaction_delete' transaction.pk %}"
+                                    class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-3">Aucune transaction trouvée</p>
+                <a href="{% url 'core:transaction_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Ajouter une transaction
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

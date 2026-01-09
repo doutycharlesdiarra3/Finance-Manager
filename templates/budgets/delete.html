@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer un budget - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-trash"></i> Supprimer le budget</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Êtes-vous sûr de vouloir supprimer ce budget ?
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <p><strong>Catégorie:</strong> {{ budget.category.icon }} {{ budget.category.name }}</p>
+                            <p><strong>Montant:</strong> {{ budget.amount }} €</p>
+                            <p><strong>Période:</strong> {{ budget.period }}</p>
+                            <p><strong>Seuil d'alerte:</strong> {{ budget.alert_threshold }}%</p>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="text-end">
+                            <a href="{% url 'core:budget_list' %}" class="btn btn-secondary">Annuler</a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
