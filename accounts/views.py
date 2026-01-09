@@ -54,13 +54,17 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     """Vue du profil utilisateur"""
+    # Crée le profil si il n'existe pas
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
+        form = UserProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
             messages.success(request, 'Votre profil a été mis à jour avec succès!')
             return redirect('accounts:profile')
     else:
-        form = UserProfileForm(instance=request.user.profile)
+        form = UserProfileForm(instance=profile)
     
     return render(request, 'accounts/profile.html', {'form': form})
+
