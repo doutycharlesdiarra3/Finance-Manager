@@ -12,5 +12,5 @@ def create_user_profile(sender, instance, created, **kwargs):
 # Sauvegarde le UserProfile à chaque sauvegarde de User
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, 'userprofile'):
-        instance.userprofile.save()
+    if hasattr(instance, 'profile'):
+        instance.profile.save()

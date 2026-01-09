@@ -15,9 +15,6 @@ def register_view(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            
-            # Créer automatiquement un profil pour le nouvel utilisateur
-            UserProfile.objects.create(user=user)
 
             login(request, user)
             messages.success(request, 'Votre compte a été créé avec succès!')
